@@ -1,0 +1,35 @@
+* {
+	font-size: 100%;
+	font-family: monospace;
+	background: #000;
+	color: #cccccc
+}
+
+pre {
+	white-space: pre-wrap
+}
+
+a:link {
+	color: #69f;
+	text-decoration: none
+}
+
+a:visited {
+	color: #96f
+}
+
+*.q {
+	color: #09f
+}
+
+h1, h2, h3, h4, h5, h6, strong {
+	font-weight: 800;
+	color: #fff;
+}
+
+hr {
+	border: none;
+	border-top: 1px dashed #ffffff;
+	height: 1px;
+	width: 100%;
+}
