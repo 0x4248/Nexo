@@ -15,7 +15,7 @@ a:link {
 }
 
 a:visited {
-	color: #96f
+	color: rgb(102, 219, 255)
 }
 
 *.q {
@@ -25,6 +25,7 @@ a:visited {
 h1, h2, h3, h4, h5, h6, strong {
 	font-weight: 800;
 	color: #fff;
+	margin: 0;
 }
 
 hr {
@@ -32,4 +33,40 @@ hr {
 	border-top: 1px dashed #ffffff;
 	height: 1px;
 	width: 100%;
+}
+
+codeblock {
+	display: block;
+	background: #1a1a1a;
+	color: #fff;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+}
+
+.owner_role {
+	font-size: 80%;
+	border: 1px solid #5db6ff;
+	color: #5db6ff;
+	background: #5db6ff2d;
+}
+
+.admin_role {
+	font-size: 80%;
+	border: 1px solid #ff5d5d;
+	color: #ff5d5d;
+	background: #ff5d5d2d;
+}
+
+.moderator_role {
+	font-size: 80%;
+	border: 1px solid #ffb65d;
+	color: #ffb65d;
+	background: #ffb65d2d;
+}
+
+.member_role {
+	font-size: 80%;
+	border: 1px solid #5dff5d;
+	color: #5dff5d;
+	background: #5dff5d2d;
 }

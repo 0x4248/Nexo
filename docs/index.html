@@ -1,0 +1,25 @@
+<pre>
+<h1>Welcome to the Nexo Textboard</h1>
+A basic mail and public posting system.
+
+This server is separated into two parts:
+- Public posts which show under the /posts endpoint
+- Mail which is like direct messages and is shown to the user under the /mail endpoint
+
+<h2>Accounts</h2>
+Users can register their account at <a href="/register">/register</a> and login at <a href="/login">/login</a>.
+
+<h2>Public posts</h2>
+Public posts are stored with the following data:
+<codeblock>
+    {
+        "id": "A hash of the post",
+        "title": "My amazing post",
+        "author": "MyUsername",
+        "timestamp": "2025-04-17 21:14:20",
+        "topic": "The topic of the post e.g (general, linux, gaming)",
+        "content": "Example post",
+        "replies": []
+    }
+</codeblock>
+</pre>
