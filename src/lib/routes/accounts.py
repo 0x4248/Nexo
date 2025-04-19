@@ -30,6 +30,9 @@ async def register_page(request: Request):
 async def register_user(request: Request, username: str = Form(...), password: str = Form(...)):
     banned_usernames = ["admin", "administrator", "root", "system", "nexo_bot"]
     banned_chars = [" ", "/", "\\", ":", "*", "?", "\"", "<", ">", "|", "!", "@", "#", "$", "%", "^", "&", "(", ")", "{", "}", "[", "]", ";", "'", ",", ".", "`", "~"]
+    allowed_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+    if not all(char in allowed_chars for char in username):
+        return HTMLResponse(utils.generate_html(request=request, main_content="Username contains invalid characters."))
     min_length = 3
     max_length = 20
     if len(username) < min_length or len(username) > max_length:
