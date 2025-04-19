@@ -98,7 +98,7 @@ if __name__ == "__main__":
         database.User.add_user("nexo_admin", "impossiblepassword", "admin")
         database.User.add_user("nexo_moderator", "impossiblepassword", "moderator")
         with open("data/topics.json", "w") as f:
-            f.write('["/general/", "/tech/", "/projects/", "/linux/", "/politics/", "/random/"]')
+            f.write('["/general/", "/tech/", "/projects/", "/linux/", "/random/", "/feedback/"]')
             
         
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")

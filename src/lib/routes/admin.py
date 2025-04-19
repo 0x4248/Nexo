@@ -85,6 +85,8 @@ async def ban_user(request: Request, ban_username: str = Form(...)):
         return HTMLResponse(utils.generate_html(request=request, main_content="Unauthorized"))
 
     database.User.set_role(ban_username, "banned")
+    sessions_manager.logout_user(ban_username)
+
     return RedirectResponse(url="/admin", status_code=303)
 
 @router.get("/admin/banuser/{ban_username}")
