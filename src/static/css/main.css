@@ -105,3 +105,14 @@ img{
 b, strong {
 	color: var(--color-text-highlight);
 }
+
+p {
+	margin: 0;
+	padding: 0;
+}
+
+blockquote {
+	margin: 0;
+	padding: 0;
+	border-left: 4px solid var(--color-link);
+}

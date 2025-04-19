@@ -119,10 +119,12 @@ Profile picture: <input type="file" name="profilepic" accept="image/*" required>
 Theme: <select name="theme">
 <option value="blank.css">Default</option>
 <option value="bigger_headings.css">Bigger headings</option>
+<option value="modern-boxes.css">Modern boxes</option>
 </select><br>
 Color scheme: <select name="color_scheme">
 <option value="default.css">Default</option>
 <option value="light.css">Light</option>
+<option value="catppuccin-mocha.css">Catppuccin Mocha</option>
 </select><br>
 <input type="submit" value="Change theme">
 </form>
