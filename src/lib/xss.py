@@ -1,4 +1,5 @@
 from html.parser import HTMLParser
+import markdown
 
 class SafeHTMLParser(HTMLParser):
     def __init__(self):
@@ -36,6 +37,16 @@ def sanitize_input(input_string: str) -> str:
     parser.feed(input_string)
     print("Sanitized input:", parser.get_sanitized())
     return parser.get_sanitized()
+
+def sanitize_markdown_input(input_string: str) -> str:
+    print("Sanitizing markdown input:", input_string)
+    parser = SafeHTMLParser()
+    parser.allowed_tags = {'b', 'i', 'u', 'a', 'br'}
+    parser.feed(input_string)
+    markdown_text = parser.get_sanitized()
+    markdown_text = markdown.markdown(markdown_text)
+    print("Sanitized markdown input:", parser.get_sanitized())
+    return markdown_text
 
 def sanitize_input_no_html(input_string: str) -> str:
     print("Sanitizing input:", input_string)
