@@ -129,8 +129,8 @@ async def get_post(request: Request, id: str):
     if not post['replies'] or len(post['replies']) == 0:
         main_content += "No replies found<br>"
     for reply in post['replies']:
-        main_content += f"<b>REPLY:</b> <i>{reply['username']}</i> <b>{reply['timestamp']}</b><br><br>"
-        main_content += f"{reply['content']}<br>"
+        main_content += f"<b>REPLY:</b> <i>{reply['username']}</i> <b>{reply['timestamp']}</b><br>"
+        main_content += f"{reply['content']}<br><br>"
     
     user = sessions_manager.get_current_user(request)
     main_content += "<section id=\"reply_section\">"

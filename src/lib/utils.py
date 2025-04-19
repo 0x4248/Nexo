@@ -23,7 +23,7 @@ def generate_html(request: Request, title="Nexo Textboard", main_content="Server
 			<br>
             {account_links}
 			<br>
-			</span><a href="/">Home</a><span> / </span><a href="/status">Status</a><span> / </span><a href="/posts">Public posts</a><span> / </span><a href="/topics">Topics</a><span> / </span><a href="/new_post">Create post</a><span>
+			[<a href="/">Home</a>] [<a href="/status">Status</a>] [<a href="/posts">Public posts</a><span>] [</span><a href="/topics">Topics</a><span>]
             <br>
             {banner}
 			<hr>
@@ -43,9 +43,9 @@ def get_account_links(request: Request):
     user = sessions_manager.get_current_user(request)
     print(user)
     if user:
-        return f"<a href='/account/{user}'>{user}</a> / <a href='/account'>Account settings</a> / <a href='/logout'>Logout</a>"
+        return f"[<a href='/account/{user}'>{user}</a>] [<a href='/account'>Account settings</a>] [<a href='/logout'>Logout</a>] [<a href='/new_post'>New post</a>]"
     else:
-        return "<a href='/login'>Login</a> / <a href='/register'>Register</a>"
+        return "[<a href='/login'>Login</a>] [<a href='/register'>Register</a>] You are not logged in."
 
 def get_username_tag(user):
     if database.User.get_role(user) == "owner":

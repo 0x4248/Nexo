@@ -107,13 +107,26 @@ New password: <input type="password" name="password" required><br>
 <input type="submit" value="Change password">
 </form>
 <form method="post" action="/account/setaboutme">
-About me: <input type="text" name="aboutme" required><br>
+About me: <textarea name="aboutme" rows="4" cols="50" required placeholder="Tell us about yourself...(Markdown supported)"></textarea><br>
 <input type="submit" value="Change about me">
 </form>
 <form method="post" action="/account/setprofilepic" enctype="multipart/form-data">
 Profile picture: <input type="file" name="profilepic" accept="image/*" required><br>
 <input type="submit" value="Change profile picture">
 </form>
+</form>
+<form method="post" action="/account/settheme">
+Theme: <select name="theme">
+<option value="blank.css">Default</option>
+<option value="bigger_headings.css">Bigger headings</option>
+</select><br>
+Color scheme: <select name="color_scheme">
+<option value="default.css">Default</option>
+<option value="light.css">Light</option>
+</select><br>
+<input type="submit" value="Change theme">
+</form>
+
 <form method="post" action="/account/delete">
 <input type="submit" value="Delete account">
 </form>
@@ -192,3 +205,13 @@ async def get_profile_pic(request: Request, username: str):
         return FileResponse("src/static/base.png")
     
     return FileResponse(file_path)
+
+@router.post("/account/settheme")
+async def set_theme(request: Request, theme: str = Form(...), color_scheme: str = Form(...)):
+    user = sessions_manager.get_current_user(request)
+    if not user:
+        return HTMLResponse(utils.generate_html(request=request, main_content="You are not logged in. <a href='/login'>Login</a> or <a href='/register'>register</a>."))
+    
+    meta_storage.User.set_theme(user, theme)
+    meta_storage.User.set_color_theme(user, color_scheme)
+    return HTMLResponse(utils.generate_html(request=request, main_content="Theme changed successfully!"))
