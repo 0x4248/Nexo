@@ -28,18 +28,28 @@ async def register_page(request: Request):
 
 @router.post("/register")
 async def register_user(request: Request, username: str = Form(...), password: str = Form(...)):
-    if database.User.user_exists(username):
-        return HTMLResponse(utils.generate_html(main_content="Username already exists."))
-    
+    banned_usernames = ["admin", "administrator", "root", "system", "nexo_bot"]
+    banned_chars = [" ", "/", "\\", ":", "*", "?", "\"", "<", ">", "|", "!", "@", "#", "$", "%", "^", "&", "(", ")", "{", "}", "[", "]", ";", "'", ",", ".", "`", "~"]
+    min_length = 3
+    max_length = 20
+    if len(username) < min_length or len(username) > max_length:
+        return HTMLResponse(utils.generate_html(request=request, main_content=f"Username must be between {min_length} and {max_length} characters."))
+    if any(char in username for char in banned_chars):
+        return HTMLResponse(utils.generate_html(request=request, main_content="Username contains invalid characters."))
+    if username in banned_usernames:
+        return HTMLResponse(utils.generate_html(request=request, main_content="Username is banned."))
+    if database.User.user_exists(username.lower()):
+        return HTMLResponse(utils.generate_html(request=request, main_content="Username already exists."))
+    username = username.lower()
     hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     database.User.add_user(username, hashed_pw, "user")
-    # create a public post for the user
+
     id = hashlib.sha256(username.encode()).hexdigest()
     id = id[:10]
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    database.PublicPosts.add_post(id, "User '" + username + "' registered", "nexo_bot", timestamp, "SYSTEM")
-    content = "Everyone welcome " + username + " to the Nexo system!<br>Good luck and have fun!<br>- Nexo_bot"
-    meta_storage.PublicPosts.add_post(id, "User '" + username + "' registered", "nexo_bot", timestamp, "SYSTEM", content)
+    database.PublicPosts.add_post(id, "User '" + username + "' registered", "nexo_bot", timestamp, "/system/")
+    content = "Everyone welcome " + username + " to the Nexo system!<br>Good luck and have fun!<br>- Nexo Bot"
+    meta_storage.PublicPosts.add_post(id, "User '" + username + "' registered", "nexo_bot", timestamp, "/system/", content)
     return HTMLResponse(utils.generate_html(request=request, main_content="User registered successfully! Now <a href='/login'>Login</a> to your account. The system has also created a welcome post for you."))
 
 @router.get("/login")

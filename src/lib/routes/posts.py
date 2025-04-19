@@ -120,7 +120,7 @@ async def get_post(request: Request, id: str):
         raise HTTPException(status_code=404, detail="Post not found")
     main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/post/" + id + "\">" + post['title'] + "</a><br><br>"
     main_content += f"<b>{post['title']}</b><br>"
-    main_content += f"<b>AUTHOR: </b><i>{post['author']}</i> <b>{post['timestamp']}</b><br>"
+    main_content += f"<b>AUTHOR: </b><i><a href=\"/account/{post['author']}\">{post['author']}</a></i> <b>{post['timestamp']}</b><br>"
     main_content += f"<b>TOPIC:</b> {post['topic']}<br><br>"
     main_content += f"{post['content']}<br>"
     main_content += "<hr>"
@@ -158,3 +158,52 @@ async def reply_post(request: Request, id: str, content: str = Form(...)):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     meta_storage.PublicPosts.add_reply(id, username, content, timestamp)
     return HTMLResponse(utils.generate_html(request=request, title="Reply submitted", main_content="Reply submitted successfully! Redirecting to post... <script>setTimeout(function() { window.location.href = '/post/" + id + "'; }, 1000);</script>"))
+
+
+@router.get("/topics")
+async def topic(request: Request):
+    # lists all the topics and has links to topic/{name} where it lists like /posts 
+    # but only shows posts with that topic
+    topics_list = topics.get_topics()
+    main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/topic\">Topics</a><br>"
+    main_content += "<h2>Topics</h2>"
+    main_content += "<ul>"
+    for t in topics_list:
+        t.replace("/", "")
+        main_content += f"<li><a href=\"/topic{t}\">{t}</a></li>"
+    main_content += f"<li><a href=\"/topic/system/\">/system/</a>\t<span class=\"owner_role\">SYSTEM TOPIC</span></li>"
+    main_content += f"<li><a href=\"/topic/admin/\">/announcements/</a>\t<span class=\"admin_role\">ADMIN TOPIC</span></li>"
+    main_content += f"<li><a href=\"/topic/updates/\">/updates/</a>\t<span class=\"admin_role\">ADMIN TOPIC</span></li>"
+    main_content += f"<li><a href=\"/topic/news/\">/news/</a>\t\t<span class=\"admin_role\">ADMIN  TOPIC</span></li>"
+    main_content += "</ul>"
+    return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | Topics", main_content=main_content))
+
+@router.get("/topic/{topic_name}")
+async def topic_posts(request: Request, topic_name: str):
+    posts = database.PublicPosts.get_posts_by_topic("/"+topic_name+"/")
+    main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/topic\">Topics</a><br>"
+    main_content += f"<h2>Posts in topic {topic_name}</h2>"
+    for post in posts:
+        # want it like 2d ago, 1h ago, 1m ago, 1y ago
+        relative_time = ""
+        post_time = datetime.datetime.strptime(post[3], "%Y-%m-%d %H:%M:%S")
+        now = datetime.datetime.now()
+        diff = relativedelta(now, post_time)
+        if diff.years > 0:
+            relative_time = f"{diff.years}y ago"
+        elif diff.months > 0:
+            relative_time = f"{diff.months}m ago"
+        elif diff.days > 0:
+            relative_time = f"{diff.days}d ago"
+        elif diff.hours > 0:
+            relative_time = f"{diff.hours}h ago"
+        elif diff.minutes > 0:
+            relative_time = f"{diff.minutes}m ago"
+        elif diff.seconds > 0:
+            relative_time = f"{diff.seconds}s ago"
+        else:
+            relative_time = "Just now"
+        main_content += f"{relative_time} Posted in <b>{post[4]}</b> by <i>{post[2]}</i> {utils.get_username_tag(post[2])}\n <a href=\"/post/{post[0]}\">{post[1]}</a>\n\n"
+    if not posts:
+        main_content = "No posts found<br>"
+    return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | Topic", main_content=main_content))

@@ -23,7 +23,7 @@ def generate_html(request: Request, title="Nexo Textboard", main_content="Server
 			<br>
             {account_links}
 			<br>
-			</span><a href="/">Home</a><span> / </span><a href="/status">Status</a><span> / </span><a href="/posts">Public posts</a><span>
+			</span><a href="/">Home</a><span> / </span><a href="/status">Status</a><span> / </span><a href="/posts">Public posts</a><span> / </span><a href="/topics">Topics</a><span> / </span><a href="/new_post">Create post</a><span>
             <br>
             {banner}
 			<hr>
@@ -43,7 +43,7 @@ def get_account_links(request: Request):
     user = sessions_manager.get_current_user(request)
     print(user)
     if user:
-        return f"<a href='/account'>{user}</a> / <a href='/logout'>Logout</a> / <a href='/new_post'>New Post</a>"
+        return f"<a href='/account/{user}'>{user}</a> / <a href='/account'>Account settings</a> / <a href='/logout'>Logout</a>"
     else:
         return "<a href='/login'>Login</a> / <a href='/register'>Register</a>"
 

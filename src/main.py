@@ -27,6 +27,12 @@ import sys
 import secrets
 from html.parser import HTMLParser
 
+INIT = False
+if not os.path.exists("data"):
+    os.makedirs("data")
+    print("INIT")
+    INIT = True
+
 from lib import database
 from lib import meta_storage
 
@@ -34,11 +40,12 @@ from lib import utils
 from lib import sessions_manager
 from lib import topics
 
+
 app = FastAPI()
 
 rate_limit_data = {}
-RATE_LIMIT = 20
-TIME_WINDOW = 60
+RATE_LIMIT = 10
+TIME_WINDOW = 20
 
 from lib.routes import static
 from lib.routes import posts
@@ -85,5 +92,11 @@ async def log_request_info(request: Request, call_next):
     return response
 
 if __name__ == "__main__":
-    database.generate_databases()
+    if INIT:
+        database.generate_databases()
+        database.User.add_user("nexo_bot", "impossiblepassword", "admin")
+        with open("data/topics.json", "w") as f:
+            f.write('["/general/"]')
+            
+        
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")
