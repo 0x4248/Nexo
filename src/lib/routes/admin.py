@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
-from lib import database, meta_storage, utils, sessions_manager
+from lib import database, meta_storage, utils, sessions_manager, topics
 import hashlib
 import datetime
 
@@ -44,6 +44,12 @@ async def admin_panel(request: Request):
         <h3>Post as SYSTEM</h3>
         Title: <input type="text" name="title" required><br>
         Topic: <input type="text" name="topic" required><br>
+        Username:
+        <select name="username">
+            <option value="nexo_bot">nexo_bot</option>
+            <option value="nexo_admin">nexo_admin</option>
+            <option value="nexo_moderator">nexo_moderator</option>
+        </select><br>
         Content: <br><textarea name="content" rows="5" cols="40" required></textarea><br>
         <input type="submit" value="Post">
     </form>
@@ -77,18 +83,18 @@ async def create_topic(request: Request, topic: str = Form(...)):
     if not user or not is_admin(user):
         return HTMLResponse(utils.generate_html(request=request, main_content="Unauthorized"))
 
-    meta_storage.Topics.add_topic(topic)
+    topics.add_topic(topic)
     return RedirectResponse(url="/admin", status_code=303)
 
 
 @router.post("/admin/systempost")
-async def system_post(request: Request, title: str = Form(...), topic: str = Form(...), content: str = Form(...)):
+async def system_post(request: Request, title: str = Form(...), topic: str = Form(...), username: str = Form(...), content: str = Form(...)):
     user = sessions_manager.get_current_user(request)
     if not user or not is_admin(user):
         return HTMLResponse(utils.generate_html(request=request, main_content="Unauthorized"))
 
     id = hashlib.sha256((title + datetime.datetime.now().isoformat()).encode()).hexdigest()[:10]
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    database.PublicPosts.add_post(id, title, "nexo_bot", timestamp, topic)
-    meta_storage.PublicPosts.add_post(id, title, "nexo_bot", timestamp, topic, content)
+    database.PublicPosts.add_post(id, title, username, timestamp, topic)
+    meta_storage.PublicPosts.add_post(id, title, username, timestamp, topic, content)
     return RedirectResponse(url="/admin", status_code=303)

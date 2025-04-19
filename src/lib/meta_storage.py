@@ -43,7 +43,7 @@ class PublicPosts:
             })
             with open(f"data/posts/{id}.json", "w") as f:
                 json.dump(data, f, indent=4)
-           
+
 class User:
     def set_aboutme(username, aboutme):
         username = xss.sanitize_input_no_html(username)
