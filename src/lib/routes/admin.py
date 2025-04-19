@@ -64,6 +64,17 @@ async def delete_post(request: Request, post_id: str = Form(...)):
         return HTMLResponse(utils.generate_html(request=request, main_content="Unauthorized"))
     
     database.PublicPosts.delete_post(post_id)
+    meta_storage.PublicPosts.delete_post(post_id)
+    return RedirectResponse(url="/admin", status_code=303)
+
+@router.get("/admin/deletepost/{post_id}")
+async def delete_post_get(request: Request, post_id: str):
+    user = sessions_manager.get_current_user(request)
+    if not user or not is_admin(user):
+        return HTMLResponse(utils.generate_html(request=request, main_content="Unauthorized"))
+
+    database.PublicPosts.delete_post(post_id)
+    meta_storage.PublicPosts.delete_post(post_id)
     return RedirectResponse(url="/admin", status_code=303)
 
 
@@ -76,6 +87,14 @@ async def ban_user(request: Request, ban_username: str = Form(...)):
     database.User.set_role(ban_username, "banned")
     return RedirectResponse(url="/admin", status_code=303)
 
+@router.get("/admin/banuser/{ban_username}")
+async def ban_user_get(request: Request, ban_username: str):
+    user = sessions_manager.get_current_user(request)
+    if not user or not is_admin(user):
+        return HTMLResponse(utils.generate_html(request=request, main_content="Unauthorized"))
+
+    database.User.set_role(ban_username, "banned")
+    return RedirectResponse(url="/admin", status_code=303)
 
 @router.post("/admin/createtopic")
 async def create_topic(request: Request, topic: str = Form(...)):

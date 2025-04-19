@@ -114,11 +114,16 @@ async def create_post(request: Request, title: Annotated[str, Header()], author:
 
 @router.get("/post/{id}")
 async def get_post(request: Request, id: str):
-
+    logged_in_user = sessions_manager.get_current_user(request)
+    is_admin = database.User.is_user_admin(logged_in_user)
     post = meta_storage.PublicPosts.get_post(id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/post/" + id + "\">" + post['title'] + "</a><br><br>"
+    # if admin
+    if is_admin:
+        main_content += f"<a href=\"/admin/deletepost/{id}\">Delete post</a><br>"
+        main_content += f"<a href=\"/admin/banuser/{post['author']}\">Ban user</a><br>"
     main_content += f"<b>{post['title']}</b><br>"
     main_content += f"<b>AUTHOR: </b><i><a href=\"/account/{post['author']}\">{post['author']}</a></i> <b>{post['timestamp']}</b><br>"
     main_content += f"<b>TOPIC:</b> {post['topic']}<br><br>"

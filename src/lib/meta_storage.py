@@ -19,6 +19,11 @@ class PublicPosts:
                 "timestamp": timestamp,
                 "topic": topic,
                 "content": content,
+                "score": 0,
+                "attachments": [],
+                "deleted": False,
+                "arhived": False,
+                "replies_locked": False,
                 "replies": []}, f, indent=4)
     def get_post(id):
         # load from json
@@ -41,6 +46,24 @@ class PublicPosts:
                 "timestamp": timestamp,
                 "content": content
             })
+            with open(f"data/posts/{id}.json", "w") as f:
+                json.dump(data, f, indent=4)
+    
+    def delete_post(id):
+        if not os.path.exists("data/posts/"):
+            os.makedirs("data/posts/")
+        with open(f"data/posts/{id}.json", "r") as f:
+            data = json.load(f)
+            data["deleted"] = True
+            with open(f"data/posts/{id}.json", "w") as f:
+                json.dump(data, f, indent=4)
+                
+    def archive_post(id):
+        if not os.path.exists("data/posts/"):
+            os.makedirs("data/posts/")
+        with open(f"data/posts/{id}.json", "r") as f:
+            data = json.load(f)
+            data["archived"] = True
             with open(f"data/posts/{id}.json", "w") as f:
                 json.dump(data, f, indent=4)
 

@@ -58,7 +58,7 @@ class User:
         role = c.fetchone()
         if role is None:
             return False
-        return role[0] == "admin"
+        return role[0] == "admin" or role[0] == "superadmin" or role[0] == "root" or role[0] == "owner" or role[0] == "administrator" or role[0] == "modrrator" or role[0] == "mod"
     
     def get_role(username):
         c.execute("SELECT Role FROM Users WHERE Username = ?", (username,))
