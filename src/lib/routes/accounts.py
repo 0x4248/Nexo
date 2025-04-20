@@ -28,7 +28,7 @@ async def register_page(request: Request):
 
 @router.post("/register")
 async def register_user(request: Request, username: str = Form(...), password: str = Form(...)):
-    banned_usernames = ["admin", "administrator", "root", "system", "nexo_bot"]
+    banned_usernames = ["admin", "administrator", "root", "system", "nexo_bot", "nexo", "owner", "moderator", "user", "guest", "anonymous"]
     banned_chars = [" ", "/", "\\", ":", "*", "?", "\"", "<", ">", "|", "!", "@", "#", "$", "%", "^", "&", "(", ")", "{", "}", "[", "]", ";", "'", ",", ".", "`", "~"]
     allowed_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
     if not all(char in allowed_chars for char in username):
