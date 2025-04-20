@@ -1,8 +1,30 @@
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+:root {
+	--color-background: #000;
+	--color-background-alt: #000;
+	--color-text: #cccccc;
+	--color-text-highlight: #fff;
+	--color-link: #69f;
+	--color-link-visited: rgb(102, 219, 255);
+	--color-codeblock-background: #1a1a1a;
+	--color-hr: #b4b4b4;
+	--color-owner-role: #5db6ff;
+	--color-owner-role-background: #5db6ff2d;
+	--color-admin-role: #ff5d5d;
+	--color-admin-role-background: #ff5d5d2d;
+	--color-moderator-role: #ffb65d;
+	--color-moderator-role-background: #ffb65d2d;
+	--color-member-role: #5dff5d;
+	--color-member-role-background: #5dff5d2d;
+}
+
 * {
 	font-size: 100%;
-	font-family: monospace;
-	background: #000;
-	color: #cccccc
+	font-family: 'JetBrains Mono', monospace;
+	background: var(--color-background);
+	color: var(--color-text);
 }
 
 pre {
@@ -10,65 +32,57 @@ pre {
 }
 
 a:link {
-	color: #69f;
+	color: var(--color-link);
 	text-decoration: none
 }
 
 a:visited {
-	color: rgb(102, 219, 255)
+	color: var(--color-link-visited);
 }
 
 *.q {
-	color: #09f
+	color: var(--color-text-highlight);
 }
 
 h1, h2, h3, h4, h5, h6, strong {
 	font-weight: 800;
-	color: #fff;
+	color: var(--color-text-highlight);
 	margin: 0;
 }
 
 hr {
 	border: none;
-	border-top: 1px dashed #ffffff;
+	border-top: 1px dashed var(--color-hr);
 	height: 1px;
 	width: 100%;
 }
 
-codeblock {
-	display: block;
-	background: #1a1a1a;
-	color: #fff;
-	padding: 0.2em 0.4em;
-	border-radius: 3px;
-}
-
 .owner_role {
 	font-size: 80%;
-	border: 1px solid #5db6ff;
-	color: #5db6ff;
-	background: #5db6ff2d;
+	border: 1px solid var(--color-owner-role);
+	color: var(--color-owner-role);
+	background: var(--color-owner-role-background);
 }
 
 .admin_role {
 	font-size: 80%;
-	border: 1px solid #ff5d5d;
-	color: #ff5d5d;
-	background: #ff5d5d2d;
+	border: 1px solid var(--color-admin-role);
+	color: var(--color-admin-role);
+	background: var(--color-admin-role-background);
 }
 
 .moderator_role {
 	font-size: 80%;
-	border: 1px solid #ffb65d;
-	color: #ffb65d;
-	background: #ffb65d2d;
+	border: 1px solid var(--color-moderator-role);
+	color: var(--color-moderator-role);
+	background: var(--color-moderator-role-background);
 }
 
 .member_role {
 	font-size: 80%;
-	border: 1px solid #5dff5d;
-	color: #5dff5d;
-	background: #5dff5d2d;
+	border: 1px solid var(--color-member-role);
+	color: var(--color-member-role);
+	background: var(--color-member-role-background);
 }
 
 .center {
@@ -81,4 +95,24 @@ codeblock {
 
 .text-center {
 	text-align: center;
+}
+
+img{
+	max-width: 250px;
+	max-height: 250px;
+}
+
+b, strong {
+	color: var(--color-text-highlight);
+}
+
+p {
+	margin: 0;
+	padding: 0;
+}
+
+blockquote {
+	margin: 0;
+	padding: 0;
+	border-left: 4px solid var(--color-link);
 }

@@ -1,0 +1,19 @@
+
+:root {
+	--color-background: #1e1e2e;
+	--color-background-alt: #45475a;
+	--color-text: #cdd6f4;
+	--color-text-highlight: #cba6f7;
+	--color-link: #89b4fa;
+	--color-link-visited: #89dceb;
+	--color-codeblock-background: #313244;
+	--color-hr: #9399b2;
+	--color-owner-role: #89b4fa;
+	--color-owner-role-background: #89b4fa42;
+	--color-admin-role: #f38ba8;
+	--color-admin-role-background: #f38ba859;
+	--color-moderator-role: #fab387;
+	--color-moderator-role-background: #fab3874b;
+	--color-member-role: #a6e3a1;
+	--color-member-role-background: #a6e3a146;
+}

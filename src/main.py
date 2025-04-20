@@ -44,7 +44,7 @@ from lib import topics
 app = FastAPI()
 
 rate_limit_data = {}
-RATE_LIMIT = 10
+RATE_LIMIT = 20
 TIME_WINDOW = 20
 
 from lib.routes import static

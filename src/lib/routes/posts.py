@@ -119,35 +119,35 @@ async def get_post(request: Request, id: str):
     post = meta_storage.PublicPosts.get_post(id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/post/" + id + "\">" + post['title'] + "</a><br><br>"
-    # if admin
-    if is_admin:
-        main_content += f"<a href=\"/admin/deletepost/{id}\">Delete post</a><br>"
-        main_content += f"<a href=\"/admin/banuser/{post['author']}\">Ban user</a><br>"
-    main_content += f"<b>{post['title']}</b><br>"
+    
+    main_content = f"<h2>{post['title']}</h2>"
     main_content += f"<b>AUTHOR: </b><i><a href=\"/account/{post['author']}\">{post['author']}</a></i> <b>{post['timestamp']}</b><br>"
     main_content += f"<b>TOPIC:</b> {post['topic']}<br><br>"
     main_content += f"{post['content']}<br>"
     main_content += "<hr>"
-    main_content += "<b>--REPLIES--</b><br>"
+    main_content += "<b>----REPLIES----</b><br><br>"
     if not post['replies'] or len(post['replies']) == 0:
         main_content += "No replies found<br>"
     for reply in post['replies']:
         main_content += f"<b>REPLY:</b> <i>{reply['username']}</i> <b>{reply['timestamp']}</b><br>"
-        main_content += f"{reply['content']}<br>"
+        main_content += f"{reply['content']}<br><br>"
     
     user = sessions_manager.get_current_user(request)
+    main_content += "<section id=\"reply_section\">"
     if user:
-        main_content += "<hr>"
         main_content += "<h2>Reply to this post</h2>"
+        main_content += f"<b>Logged in as: {user}</b><br>"
         main_content += f"<form action=\"/reply/{id}\" method=\"post\">"
-        main_content += f"<input type=\"textarea\" name=\"content\" rows=\"10\" cols=\"50\" required></textarea><br>"
+        main_content += f"<textarea name=\"content\" rows=\"10\" cols=\"50\" required></textarea><br>"
         main_content += f"<input type=\"submit\" value=\"Reply\">"
         main_content += "</form>"
     else:
-        main_content += "<hr>"
         main_content += "<h2>Reply to this post</h2>"
         main_content += "You must be logged in to reply to a post. <a href='/login'>Login</a> or <a href='/register'>register</a>."
+    main_content += "</section>"
+    if is_admin:
+        main_content += f"<a href=\"/admin/deletepost/{id}\">Delete post</a><br>"
+        main_content += f"<a href=\"/admin/banuser/{post['author']}\">Ban user</a><br>"
     return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | View post", main_content=main_content))
 
 @router.post("/reply/{id}")

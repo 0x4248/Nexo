@@ -6,7 +6,7 @@ import os
 import sys
 
 from lib import utils
-
+from lib import sessions_manager
 
 
 router = APIRouter()
@@ -21,8 +21,34 @@ async def root(request: Request):
 
 
 @router.get("/style")
-async def style():
-    return FileResponse("src/static/css/main.css")
+async def style(request: Request):
+    style = open("src/static/css/main.css", "r")
+    content = style.read()
+    style.close()
+    
+    # get userame
+    username = sessions_manager.get_current_user(request)
+    
+    if username:
+        try:
+            theme_file_name = open("data/users/" + username + "/theme.txt", "r")
+            theme_file_name = theme_file_name.read()
+            theme = open("src/static/css/custom/theme/" + theme_file_name, "r")
+            content += theme.read()
+            theme.close()
+        except FileNotFoundError:
+            content += open("src/static/css/custom/theme/blank.css", "r").read()
+        try:
+            color_file_name = open("data/users/" + username + "/color.txt", "r")
+            color_file_name = color_file_name.read()
+            color = open("src/static/css/custom/color/" + color_file_name, "r")
+            content += color.read()
+            color.close()
+        except FileNotFoundError:
+            content += open("src/static/css/custom/color/none.css", "r").read()
+    else:
+        return PlainTextResponse(content, media_type="text/css")
+    return PlainTextResponse(content, media_type="text/css")
 
 @router.get("/docs/{path:path}")
 async def style(request: Request, path: str):
