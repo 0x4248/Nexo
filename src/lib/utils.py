@@ -48,26 +48,27 @@ def get_account_links(request: Request):
         return "[<a href='/login'>Login</a>] [<a href='/register'>Register</a>] You are not logged in."
 
 def get_username_tag(user):
-    if database.User.get_role(user) == "owner":
+    if database.User.Get.role(user) == "owner":
         return f"<span class=\"owner_role\">OWNER</span>"
-    if database.User.get_role(user) == "admin":
+    if database.User.Get.role(user) == "admin":
         return f"<span class=\"admin_role\">ADMIN</span>"
-    if database.User.get_role(user) == "moderator":
+    if database.User.Get.role(user) == "moderator":
         return f"<span class=\"moderator_role\">MOD</span>"
-    if database.User.get_role(user) == "user":
+    if database.User.Get.role(user) == "user":
         return f"<span class=\"member_role\">MEMBER</span>"
 
 
 def get_stats():
     posts = database.PublicPosts.get_all_posts()
     posts_count = len(posts)
-    users = database.User.get_all_users()
+    users = database.User.Core.get_all_users()
     users_count = len(users)
     
     all_topics = topics.get_topics()
     topics_count = len(all_topics)
 
-    all_admins = database.User.get_admins()
+    all_admins = database.User.Core.get_user_by_role("admin")
+    
     admin_content = ""
     for admin in all_admins:
         admin_content += f"<b>{admin[0]}</b> <i>{admin[2]}</i><br>"

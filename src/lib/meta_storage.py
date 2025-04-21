@@ -26,7 +26,6 @@ class PublicPosts:
                 "replies_locked": False,
                 "replies": []}, f, indent=4)
     def get_post(id):
-        # load from json
         if not os.path.exists("data/posts/"):
             os.makedirs("data/posts/")
         with open(f"data/posts/{id}.json", "r") as f:

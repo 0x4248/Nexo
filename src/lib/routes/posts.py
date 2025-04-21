@@ -21,12 +21,11 @@ async def new_post_page(request: Request):
     if not user:
         return HTMLResponse(utils.generate_html(request=request, main_content="You must be logged in to create a post. <a href='/login'>Login</a> or <a href='/register'>register</a>."))
     
-    topics_list = topics.get_topics()
+    topics_list = database.Topics.Core.get_all_topics()
     topics_dropdown = "<select name=\"topic\">"
     for topic in topics_list:
-        topics_dropdown += f"<option value=\"{topic}\">{topic}</option>"
+        topics_dropdown += f"<option value=\"{topic['ID']}\">{topic['ID']}</option>"
     topics_dropdown += "</select>"
-    
     
     main_content = f"""
 <h2>Create a New Post</h2>
@@ -53,12 +52,18 @@ async def submit_post(
     topic: str = Form(...),
     content: str = Form(...)
 ):
+    # TODO: Add validation for /topic/
     id = hashlib.sha256((title + author + topic + content).encode()).hexdigest()
     id = id[:10]
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    database.PublicPosts.add_post(id, title, author, timestamp, topic)
-    meta_storage.PublicPosts.add_post(id, title, author, timestamp, topic, content)
-
+    database.PublicPosts.Core.add_post(
+        id=id,
+        title=title,
+        author=author,
+        timestamp=timestamp,
+        topic=topic,
+        body=content
+    )
     return HTMLResponse(utils.generate_html(
         request=request,
         title="Post Created",
@@ -73,11 +78,11 @@ async def posts(request: Request, page: int = 0):
     if page < 0:
         return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | Public posts", main_content="Why are you doing a negative page lmao?\nYou know thats not how databases work right?"))
     
-    posts = database.PublicPosts.get_post_by_page(page)
+    posts = database.PublicPosts.Core.get_post_by_page(page)
     main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a><br>"
     for post in posts:
         relative_time = ""
-        post_time = datetime.datetime.strptime(post[3], "%Y-%m-%d %H:%M:%S")
+        post_time = datetime.datetime.strptime(post['Timestamp'], "%Y-%m-%d %H:%M:%S")
         now = datetime.datetime.now()
         diff = relativedelta(now, post_time)
         if diff.years > 0:
@@ -94,7 +99,7 @@ async def posts(request: Request, page: int = 0):
             relative_time = f"{diff.seconds}s ago"
         else:
             relative_time = "Just now"
-        main_content += f"{relative_time} Posted in <b>{post[4]}</b> by <i>{post[2]}</i> {utils.get_username_tag(post[2])}\n <a href=\"/post/{post[0]}\">{post[1]}</a>\n\n"
+        main_content += f"{relative_time} Posted in <b>{post['Topic']}</b> by <i>{post['Author']}</i> {utils.get_username_tag(post['Author'])}\n <a href=\"/post/{post['ID']}\">{post['Title']}</a>\n\n"
     if not posts:
         main_content = "No posts found<br>"
     if page == 0:
@@ -117,23 +122,25 @@ async def create_post(request: Request, title: Annotated[str, Header()], author:
 @router.get("/post/{id}")
 async def get_post(request: Request, id: str):
     logged_in_user = sessions_manager.get_current_user(request)
-    is_admin = database.User.is_user_admin(logged_in_user)
-    post = meta_storage.PublicPosts.get_post(id)
+    is_admin = database.User.Check.is_admin(logged_in_user) if logged_in_user else False
+    post = database.PublicPosts.Core.get_post(id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    main_content = f"<h2>{post['title']}</h2>"
-    main_content += f"<b>AUTHOR: </b><i><a href=\"/account/{post['author']}\">{post['author']}</a></i> <b>{post['timestamp']}</b><br>"
-    main_content += f"<b>TOPIC:</b> {post['topic']}<br><br>"
-    main_content += f"{post['content']}<br>"
+    main_content = f"<h2>{post['Title']}</h2>"
+    main_content += f"<b>AUTHOR: </b><i><a href=\"/account/{post['Author']}\">{post['Author']}</a></i> <b>{post['Timestamp']}</b><br>"
+    main_content += f"<b>TOPIC:</b> {post['Topic']}<br><br>"
+    main_content += f"{post['Body']}<br>"
     main_content += "<hr>"
     main_content += "<b>----REPLIES----</b><br><br>"
-    if not post['replies'] or len(post['replies']) == 0:
-        main_content += "No replies found<br>"
-    for reply in post['replies']:
-        main_content += f"<b>REPLY:</b> <i>{reply['username']}</i> <b>{reply['timestamp']}</b><br>"
-        main_content += f"{reply['content']}<br><br>"
-    
+    if post['Replies'] == "[]":
+        main_content += "No replies yet<br>"
+    else:
+        for replyid in post['Replies']:
+            reply = database.PublicPostReplies.Core.get_reply(replyid)
+            main_content += f"<b>REPLY:</b> <i>{reply['Username']}</i> <b>{reply['Timestamp']}</b><br>"
+            main_content += f"{reply['Content']}<br><br>"
+
     user = sessions_manager.get_current_user(request)
     main_content += "<section id=\"reply_section\">"
     if user:
@@ -148,8 +155,13 @@ async def get_post(request: Request, id: str):
         main_content += "You must be logged in to reply to a post. <a href='/login'>Login</a> or <a href='/register'>register</a>."
     main_content += "</section>"
     if is_admin:
-        main_content += f"<a href=\"/admin/deletepost/{id}\">Delete post</a><br>"
-        main_content += f"<a href=\"/admin/banuser/{post['author']}\">Ban user</a><br>"
+        main_content += "<hr>"
+        main_content += "<h2>Admin actions</h2>"
+        main_content += f"[<a onclick=\"document.getElementById('admin_actions').style.display = 'block';\">Show admin actions</a>]<br>"
+        main_content += "<div id=\"admin_actions\" style=\"display: none;\">"
+        main_content += f"[<a href=\"/admin/deletepost/{id}\">Delete post</a>] "
+        main_content += f"[<a href=\"/admin/banuser/{post['Author']}\">Ban user</a>]<br>"
+        main_content += f"</div>"
     return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | View post", main_content=main_content))
 
 @router.post("/reply/{id}")

@@ -34,7 +34,6 @@ if not os.path.exists("data"):
     INIT = True
 
 from lib import database
-from lib import meta_storage
 
 from lib import utils
 from lib import sessions_manager
@@ -94,11 +93,9 @@ async def log_request_info(request: Request, call_next):
 if __name__ == "__main__":
     if INIT:
         database.generate_databases()
-        database.User.add_user("nexo_bot", "impossiblepassword", "admin")
-        database.User.add_user("nexo_admin", "impossiblepassword", "admin")
-        database.User.add_user("nexo_moderator", "impossiblepassword", "moderator")
-        with open("data/topics.json", "w") as f:
-            f.write('["/general/", "/tech/", "/projects/", "/linux/", "/random/", "/feedback/"]')
-            
+        database.User.Core.create_user("nexo_bot", "null", "admin")
+        database.User.Core.create_user("nexo", "null", "admin")
+        database.Topics.Core.create_topic("/general/", "General", "General discussion", 'False', 'False', 'False')
+        database.Topics.Core.create_topic("/admin/", "Admin", "Admin discussion", 'True', 'False', 'False')
         
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")
