@@ -70,10 +70,12 @@ async def submit_post(
 
 @router.get("/posts")
 async def posts(request: Request, page: int = 0):
+    if page < 0:
+        return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | Public posts", main_content="Why are you doing a negative page lmao?\nYou know thats not how databases work right?"))
+    
     posts = database.PublicPosts.get_post_by_page(page)
     main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a><br>"
     for post in posts:
-        # want it like 2d ago, 1h ago, 1m ago, 1y ago
         relative_time = ""
         post_time = datetime.datetime.strptime(post[3], "%Y-%m-%d %H:%M:%S")
         now = datetime.datetime.now()
@@ -95,8 +97,8 @@ async def posts(request: Request, page: int = 0):
         main_content += f"{relative_time} Posted in <b>{post[4]}</b> by <i>{post[2]}</i> {utils.get_username_tag(post[2])}\n <a href=\"/post/{post[0]}\">{post[1]}</a>\n\n"
     if not posts:
         main_content = "No posts found<br>"
-    if page < 0:
-        main_content += "<a href=\"/posts?page=" + str(page - 1) + "\"><-</a> "
+    if page == 0:
+        main_content += "<- Page 0 <a href=\"/posts?page=" + str(page + 1) + "\">-></a>"
     else:
         main_content += "<a href=\"/posts?page=" + str(page - 1) + "\"><-</a> Page " + str(page) + " <a href=\"/posts?page=" + str(page + 1) + "\">-></a>"
     footer_content = "200 OK"
@@ -167,8 +169,6 @@ async def reply_post(request: Request, id: str, content: str = Form(...)):
 
 @router.get("/topics")
 async def topic(request: Request):
-    # lists all the topics and has links to topic/{name} where it lists like /posts 
-    # but only shows posts with that topic
     topics_list = topics.get_topics()
     main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/topic\">Topics</a><br>"
     main_content += "<h2>Topics</h2>"
@@ -189,7 +189,6 @@ async def topic_posts(request: Request, topic_name: str):
     main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/topic\">Topics</a><br>"
     main_content += f"<h2>Posts in topic {topic_name}</h2>"
     for post in posts:
-        # want it like 2d ago, 1h ago, 1m ago, 1y ago
         relative_time = ""
         post_time = datetime.datetime.strptime(post[3], "%Y-%m-%d %H:%M:%S")
         now = datetime.datetime.now()
