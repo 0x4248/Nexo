@@ -4,10 +4,10 @@ from typing import Annotated
 
 import hashlib
 
-from lib import database
-from lib import utils
-from lib import sessions_manager
-from lib import responses
+from .. import database
+from .. import utils
+from .. import sessions_manager
+from .. import responses
 import os
 
 router = APIRouter()
@@ -164,7 +164,7 @@ async def delete_account(request: Request):
 
 @router.get("/account/{username}")
 async def account_page(request: Request, username: str):
-    if not database.User.user_exists(username):
+    if not database.User.Check.exists(username):
         return HTMLResponse(utils.generate_html(request=request, main_content="User does not exist. <a href='/login'>Login</a> or <a href='/register'>register</a>."))
 
     about_me = database.User.Get.about_me(username)
@@ -180,7 +180,7 @@ async def account_page(request: Request, username: str):
 
 @router.get("/account/{username}/profile_pic")
 async def get_profile_pic(request: Request, username: str):
-    if not database.User.user_exists(username):
+    if not database.User.Check.exists(username):
         return HTMLResponse(utils.generate_html(request=request, main_content="User does not exist. <a href='/login'>Login</a> or <a href='/register'>register</a>."))
     
     file_path = f"data/users/{username}/profile_pic.png"

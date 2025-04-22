@@ -1,6 +1,6 @@
 import os
 import json
-from lib import xss
+from . import xss
 
 class PublicPosts:
     def add_post(id, title, author, timestamp, topic, content):

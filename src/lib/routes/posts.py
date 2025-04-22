@@ -9,7 +9,6 @@ from .. import database
 from .. import meta_storage
 from .. import utils
 from .. import sessions_manager
-from .. import topics
 
 router = APIRouter()
 
@@ -128,7 +127,7 @@ async def get_post(request: Request, id: str):
     
     main_content = f"<h2>{post['Title']}</h2>"
     main_content += f"<b>AUTHOR: </b><i><a href=\"/account/{post['Author']}\">{post['Author']}</a></i> <b>{post['Timestamp']}</b><br>"
-    main_content += f"<b>TOPIC:</b> {post['Topic']}<br><br>"
+    main_content += f"<b>TOPIC:</b> <a href=\"/topic{post['Topic']}\">{post['Topic']}</a><br>"
     main_content += f"{post['Body']}<br>"
     main_content += "<hr>"
     main_content += "<b>----REPLIES----</b><br><br>"
@@ -180,28 +179,33 @@ async def reply_post(request: Request, id: str, content: str = Form(...)):
 
 @router.get("/topics")
 async def topic(request: Request):
-    topics_list = topics.get_topics()
+    topics_list = database.Topics.Core.get_all_topics()
     main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/topic\">Topics</a><br>"
     main_content += "<h2>Topics</h2>"
     main_content += "<ul>"
-    for t in topics_list:
-        t.replace("/", "")
-        main_content += f"<li><a href=\"/topic{t}\">{t}</a></li>"
-    main_content += f"<li><a href=\"/topic/system/\">/system/</a>\t<span class=\"owner_role\">SYSTEM TOPIC</span></li>"
-    main_content += f"<li><a href=\"/topic/admin/\">/announcements/</a>\t<span class=\"admin_role\">ADMIN TOPIC</span></li>"
-    main_content += f"<li><a href=\"/topic/updates/\">/updates/</a>\t<span class=\"admin_role\">ADMIN TOPIC</span></li>"
-    main_content += f"<li><a href=\"/topic/news/\">/news/</a>\t\t<span class=\"admin_role\">ADMIN  TOPIC</span></li>"
+    for topic in topics_list:
+        name = topic['ID']
+        name.replace("/", "")
+        if topic['AdminOnly'] == 'True':
+            main_content += f"<li><a href=\"/topic{name}\">{name}</a> - {topic['Description']} <span class=\"admin_role\">ADMIN TOPIC</span></li>"
+        else:
+            main_content += f"<li><a href=\"/topic{name}\">{name}</a> - {topic['Description']}</li>"
     main_content += "</ul>"
     return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | Topics", main_content=main_content))
 
 @router.get("/topic/{topic_name}")
-async def topic_posts(request: Request, topic_name: str):
-    posts = database.PublicPosts.get_posts_by_topic("/"+topic_name+"/")
-    main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a> > <a href=\"/topic\">Topics</a><br>"
-    main_content += f"<h2>Posts in topic {topic_name}</h2>"
+async def topic_posts(request: Request, topic_name: str, page: int = 0):
+    topic_name = "/"+topic_name+"/"
+    posts = database.PublicPosts.Core.get_posts_by_topic(topic_name, page)
+    topic_info = database.Topics.Core.get_topic(topic_name)
+    description = topic_info['Description'] if topic_info else "No description available"
+    main_content = f"<b>{topic_name}</b><br>"
+    main_content += f"{description}<br><br>"
+    main_content += "All posts ordered by timestamp<br>"
+
     for post in posts:
         relative_time = ""
-        post_time = datetime.datetime.strptime(post[3], "%Y-%m-%d %H:%M:%S")
+        post_time = datetime.datetime.strptime(post['Timestamp'], "%Y-%m-%d %H:%M:%S")
         now = datetime.datetime.now()
         diff = relativedelta(now, post_time)
         if diff.years > 0:
@@ -218,7 +222,13 @@ async def topic_posts(request: Request, topic_name: str):
             relative_time = f"{diff.seconds}s ago"
         else:
             relative_time = "Just now"
-        main_content += f"{relative_time} Posted in <b>{post[4]}</b> by <i>{post[2]}</i> {utils.get_username_tag(post[2])}\n <a href=\"/post/{post[0]}\">{post[1]}</a>\n\n"
+        main_content += f"{relative_time} Posted in <b>{post['Topic']}</b> by <i>{post['Author']}</i> {utils.get_username_tag(post['Author'])}\n <a href=\"/post/{post['ID']}\">{post['Title']}</a>\n\n"
+    if page == 0:
+        main_content += "<- Page 0 <a href=\"/topic/" + topic_name + "?page=" + str(page + 1) + "\">-></a>"
+    else:
+        main_content += "<a href=\"/topic/" + topic_name + "?page=" + str(page - 1) + "\"><-</a> Page " + str(page) + " <a href=\"/topic/" + topic_name + "?page=" + str(page + 1) + "\">-></a>"
+
+
     if not posts:
         main_content = "No posts found<br>"
     return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | Topic", main_content=main_content))

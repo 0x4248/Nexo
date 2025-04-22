@@ -1,7 +1,6 @@
 from fastapi import Request, Form
 from lib import sessions_manager
 from lib import database
-from lib import topics 
 
 def generate_html(request: Request, title="Nexo Textboard", main_content="Server did not return any content", footer_content=""):
     account_links = get_account_links(request)
@@ -64,7 +63,7 @@ def get_stats():
     users = database.User.Core.get_all_users()
     users_count = len(users)
     
-    all_topics = topics.get_topics()
+    all_topics = database.Topics.Core.get_all_topics()
     topics_count = len(all_topics)
 
     all_admins = database.User.Core.get_user_by_role("admin")

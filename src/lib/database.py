@@ -218,8 +218,8 @@ class PublicPosts:
             c.execute("SELECT * FROM PublicPosts WHERE Author = ? ORDER BY Timestamp DESC", (author,))
             return [dict(row) for row in c.fetchall()]
         
-        def get_posts_by_topic(topic):
-            c.execute("SELECT * FROM PublicPosts WHERE Topic = ? ORDER BY Timestamp DESC", (topic,))
+        def get_posts_by_topic(topic, page=0):
+            c.execute("SELECT * FROM PublicPosts WHERE Topic = ? ORDER BY Timestamp DESC LIMIT 20 OFFSET ?", (topic, page * 20))
             return [dict(row) for row in c.fetchall()]
 
         def get_post_by_page(page):

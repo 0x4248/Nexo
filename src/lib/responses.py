@@ -1,5 +1,5 @@
 from fastapi.responses import HTMLResponse
-from lib import utils
+from . import utils
 
 class Account:
     class Errors:

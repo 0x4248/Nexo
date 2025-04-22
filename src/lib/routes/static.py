@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request, Header, HTTPException, UploadFile, File, Form, Response, APIRouter
 from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse, FileResponse
 
-from lib import utils
-from lib import sessions_manager
+from .. import utils
+from .. import sessions_manager
 
 
 router = APIRouter()
@@ -11,7 +11,7 @@ router = APIRouter()
 async def root(request: Request):
     file = open("src/static/index.html", "r")
     content = file.read()
-    # content += utils.get_stats()
+
     file.close()
     return HTMLResponse(utils.generate_html(request=request, title="Nexo System", main_content=content))
 
