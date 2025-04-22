@@ -2,7 +2,7 @@
 import sqlite3
 import os
 
-from lib import xss
+from . import xss
 
 conn = sqlite3.connect("data/nexo.db")
 conn.row_factory = sqlite3.Row

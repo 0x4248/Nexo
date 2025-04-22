@@ -34,11 +34,7 @@ if not os.path.exists("data"):
     INIT = True
 
 from lib import database
-
 from lib import utils
-from lib import sessions_manager
-from lib import topics
-
 
 app = FastAPI()
 

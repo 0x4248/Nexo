@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse, Fil
 from typing import Annotated
 
 import hashlib
-import datetime
 
 from lib import database
 from lib import utils

@@ -5,11 +5,11 @@ from typing import Annotated
 import hashlib
 import datetime
 from dateutil.relativedelta import relativedelta
-from lib import database
-from lib import meta_storage
-from lib import utils
-from lib import sessions_manager
-from lib import topics
+from .. import database
+from .. import meta_storage
+from .. import utils
+from .. import sessions_manager
+from .. import topics
 
 router = APIRouter()
 
@@ -77,7 +77,6 @@ async def submit_post(
 async def posts(request: Request, page: int = 0):
     if page < 0:
         return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | Public posts", main_content="Why are you doing a negative page lmao?\nYou know thats not how databases work right?"))
-    
     posts = database.PublicPosts.Core.get_post_by_page(page)
     main_content = "<a href=\"/\">Home</a> > <a href=\"/posts\">Public posts</a><br>"
     for post in posts:
