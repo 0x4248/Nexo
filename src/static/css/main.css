@@ -93,6 +93,11 @@ hr {
 	height: 100%;
 }
 
+button, textarea, input, select {
+    border: 2px solid var(--color-link);
+    border-radius: 4px;
+}
+
 .text-center {
 	text-align: center;
 }
@@ -100,6 +105,7 @@ hr {
 img{
 	max-width: 250px;
 	max-height: 250px;
+	border-radius: 4px;
 }
 
 b, strong {
@@ -111,8 +117,10 @@ p {
 	padding: 0;
 }
 
+
 blockquote {
 	margin: 0;
 	padding: 0;
 	border-left: 4px solid var(--color-link);
+	padding-left: 10px;
 }

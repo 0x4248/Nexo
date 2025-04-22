@@ -188,7 +188,7 @@ class Topics:
 
 class PublicPosts:
     class Core:
-        def add_post(id, title, author, timestamp, topic, body="", attachments="[]", score=0, deleted="False", archived="False", replies_locked="False", replies="[]"):
+        def add_post(id, title, author, timestamp, topic, body="", attachments="", score=0, deleted="False", archived="False", replies_locked="False", replies=""):
             title = xss.sanitize_input_no_html(title)
             author = xss.sanitize_input_no_html(author)
             topic = xss.sanitize_input_no_html(topic)
@@ -263,11 +263,42 @@ class PublicPostReplies:
                 VALUES (?, ?, ?, ?, ?)""", 
                 (reply_id, post_id, author, timestamp, body)
             )
+            c.execute("SELECT Replies FROM PublicPosts WHERE ID = ?", (post_id,))
+            replies = c.fetchone()[0]
+            if replies == "":
+                replies = reply_id
+            else:
+                replies += "," + reply_id
+            c.execute("UPDATE PublicPosts SET Replies = ? WHERE ID = ?", (replies, post_id))
             conn.commit()
 
         def get_replies(post_id):
-            c.execute("SELECT * FROM PublicPostsReplies WHERE PostID = ? ORDER BY Timestamp ASC", (post_id,))
-            return [dict(row) for row in c.fetchall()]
+            c.execute("SELECT * FROM PublicPosts WHERE ID = ?", (post_id,))
+            row = c.fetchone()
+            replies = row['Replies']
+            replies = replies.split(",") if replies else []
+            if not replies:
+                return []
+            if replies[0] == "":
+                return []
+            ret = {
+                "ReplyID": [],
+                "Author": [],
+                "Body": [],
+                "Timestamp": []
+            }
+            for reply_id in replies:
+                c.execute("SELECT * FROM PublicPostsReplies WHERE ID = ?", (reply_id,))
+                row = c.fetchone()
+                if row:
+                    ret["ReplyID"].append(row["ID"])
+                    ret["Author"].append(row["Author"])
+                    ret["Body"].append(row["Body"])
+                    ret["Timestamp"].append(row["Timestamp"])
+            
+            return ret
+
+
         
         def get_reply(reply_id):
             c.execute("SELECT * FROM PublicPostsReplies WHERE ID = ?", (reply_id,))

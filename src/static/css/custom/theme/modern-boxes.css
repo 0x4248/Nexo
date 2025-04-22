@@ -1,4 +1,0 @@
-button, textarea, input[type="text"], input[type="email"], input[type="password"], select {
-    border: 1px solid var(--color-link);
-    border-radius: 2px;
-}

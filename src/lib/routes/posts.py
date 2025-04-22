@@ -6,7 +6,6 @@ import hashlib
 import datetime
 from dateutil.relativedelta import relativedelta
 from .. import database
-from .. import meta_storage
 from .. import utils
 from .. import sessions_manager
 
@@ -107,16 +106,6 @@ async def posts(request: Request, page: int = 0):
     footer_content = "200 OK"
     return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | Public posts", main_content=main_content, footer_content=footer_content))
 
-
-@router.post("/create_post")
-async def create_post(request: Request, title: Annotated[str, Header()], author: Annotated[str, Header()], topic: Annotated[str, Header()], content: Annotated[str, Header()]):
-    id = hashlib.sha256((title + author + topic + content).encode()).hexdigest()
-    id = id[:10]
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    database.PublicPosts.add_post(id, title, author, timestamp, topic)
-    meta_storage.PublicPosts.add_post(id, title, author, timestamp, topic, content)
-    return JSONResponse(content={"status": "success", "id": id})
-
 @router.get("/post/{id}")
 async def get_post(request: Request, id: str):
     logged_in_user = sessions_manager.get_current_user(request)
@@ -131,21 +120,27 @@ async def get_post(request: Request, id: str):
     main_content += f"{post['Body']}<br>"
     main_content += "<hr>"
     main_content += "<b>----REPLIES----</b><br><br>"
-    if post['Replies'] == "[]":
+    if post['Replies'] == "":
         main_content += "No replies yet<br>"
-    else:
-        for replyid in post['Replies']:
-            reply = database.PublicPostReplies.Core.get_reply(replyid)
-            main_content += f"<b>REPLY:</b> <i>{reply['Username']}</i> <b>{reply['Timestamp']}</b><br>"
-            main_content += f"{reply['Content']}<br><br>"
-
+    post['Replies'] = post['Replies'].split(",")
+    for reply in post['Replies']:
+        if reply == "":
+            continue
+        reply_data = database.PublicPostReplies.Core.get_reply(reply)
+        if not reply_data:
+            continue
+        main_content += f"<section id=\"reply_{reply_data['ID']}\">"
+        main_content += f"<b>REPLY:</b> <i><a href=\"/account/{reply_data['Author']}\">{reply_data['Author']}</a></i> <b>{reply_data['Timestamp']}</b> <i>{reply_data['ID']}</i><br>"
+        main_content += f"{reply_data['Body']}<br>"
+        main_content += "</section>"
+        
     user = sessions_manager.get_current_user(request)
     main_content += "<section id=\"reply_section\">"
     if user:
         main_content += "<h2>Reply to this post</h2>"
         main_content += f"<b>Logged in as: {user}</b><br>"
         main_content += f"<form action=\"/reply/{id}\" method=\"post\">"
-        main_content += f"<textarea name=\"content\" rows=\"10\" cols=\"50\" required></textarea><br>"
+        main_content += f"<textarea name=\"content\" id=\"reply_box\" rows=\"10\" cols=\"50\" required></textarea><br>"
         main_content += f"<input type=\"submit\" value=\"Reply\">"
         main_content += "</form>"
     else:
@@ -160,6 +155,9 @@ async def get_post(request: Request, id: str):
         main_content += f"[<a href=\"/admin/deletepost/{id}\">Delete post</a>] "
         main_content += f"[<a href=\"/admin/banuser/{post['Author']}\">Ban user</a>]<br>"
         main_content += f"</div>"
+        main_content += "<script>"
+        main_content += "function replyQuote(id) {"
+        main_content += "document.getElementById('reply_box').value = document.getElementById('reply_' + id).innerText;"
     return HTMLResponse(utils.generate_html(request=request, title="Nexo Textboard | View post", main_content=main_content))
 
 @router.post("/reply/{id}")
@@ -170,10 +168,13 @@ async def reply_post(request: Request, id: str, content: str = Form(...)):
         return HTMLResponse(utils.generate_html(request=request, main_content="You must be logged in to reply to a post. <a href='/login'>Login</a> or <a href='/register'>register</a>."))
     if not content:
         return HTMLResponse(utils.generate_html(request=request, main_content="Content cannot be empty. <a href='/posts'>Go back</a>"))    
-    if not meta_storage.PublicPosts.get_post(id):
+    if not database.PublicPosts.Core.get_post(id):
         raise HTTPException(status_code=404, detail="Post not found")
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    meta_storage.PublicPosts.add_reply(id, username, content, timestamp)
+    reply_id = hashlib.sha256((content + username + id).encode()).hexdigest()
+    reply_id = reply_id[:10]
+    database.PublicPostReplies.Core.add_reply(reply_id=reply_id, post_id=id, author=username, body=content, timestamp=timestamp)
+
     return HTMLResponse(utils.generate_html(request=request, title="Reply submitted", main_content="Reply submitted successfully! Redirecting to post... <script>setTimeout(function() { window.location.href = '/post/" + id + "'; }, 1000);</script>"))
 
 
