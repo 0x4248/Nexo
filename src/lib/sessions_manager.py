@@ -6,7 +6,6 @@ sessions = {}
 
 def get_current_user(request):
     session_id = request.cookies.get("session_id")
-    logger.log("SessionManager", f"Get current user request: {request}")
     
     return sessions.get(session_id)
 
@@ -23,10 +22,12 @@ def login_user(request, username):
 def logout_user(request):
     session_id = request.cookies.get("session_id")
     if session_id in sessions:
+        username = sessions[session_id]
         del sessions[session_id]
-        logger.log("SessionManager", f"User {sessions[session_id]} logged out.")
     else:
         logger.log("SessionManager", "Logout request with no session ID.")
+    logger.log("SessionManager", f"User {username} logged out.")
+
     return session_id
 
 def is_logged_in(request):

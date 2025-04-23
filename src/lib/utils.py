@@ -1,6 +1,8 @@
 from fastapi import Request, Form
+from datetime import datetime
 from lib import sessions_manager
 from lib import database
+from lib import globals
 
 def generate_html(request: Request, title="Nexo Textboard", main_content="Server did not return any content", footer_content=""):
     account_links = get_account_links(request)
@@ -40,7 +42,7 @@ Under the GNU General Public License v3.0
 
 def get_account_links(request: Request):
     user = sessions_manager.get_current_user(request)
-    print(user)
+
     if user:
         return f"[<a href='/account/{user}'>{user}</a>] [<a href='/account'>Account settings</a>] [<a href='/logout'>Logout</a>] [<a href='/new_post'>New post</a>]"
     else:
@@ -56,30 +58,23 @@ def get_username_tag(user):
     if database.User.Get.role(user) == "user":
         return f"<span class=\"member_role\">MEMBER</span>"
 
-
 def get_stats():
-    posts = database.PublicPosts.get_all_posts()
-    posts_count = len(posts)
+    posts = database.PublicPosts.Core.get_all_posts()
     users = database.User.Core.get_all_users()
+    topics = database.Topics.Core.get_all_topics()
+    posts_count = len(posts)
     users_count = len(users)
-    
-    all_topics = database.Topics.Core.get_all_topics()
-    topics_count = len(all_topics)
+    topics_count = len(topics)
+    uptime = datetime.now() - datetime.fromtimestamp(globals.START_TIME)
 
-    all_admins = database.User.Core.get_user_by_role("admin")
-    
-    admin_content = ""
-    for admin in all_admins:
-        admin_content += f"<b>{admin[0]}</b> <i>{admin[2]}</i><br>"
+    main_content = f"""
+    System UP
+    <b>UPTIME:</b> {uptime.days} days, {uptime.seconds // 3600} hours, {(uptime.seconds // 60) % 60} minutes
+    <b>VERSION:</b> {globals.VERSION_FULL}
+    <b>TOTAL POSTS:</b> {posts_count}
+    <b>TOTAL USERS:</b> {users_count}
+    <b>TOTAL TOPICS:</b> {topics_count}
+    """    
 
-    return_content = f"""
-<h2>Statistics</h2>
-<b>Posts:</b> {posts_count}
-<b>Users:</b> {users_count}
-<b>Topics:</b> {topics_count}
-
-<h2>Admins</h2>
-{admin_content}
-    """
     
-    return return_content
+    return None

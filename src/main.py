@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0 
 # Nexo
-# Basic HTTP mailing system
+# A textboard with the kitchen sink included
 #
 # main.py
 #
@@ -21,11 +21,7 @@ from PIL import Image
 import uvicorn
 import hashlib
 import time
-import datetime
 import os
-import sys
-import secrets
-from html.parser import HTMLParser
 
 INIT = False
 if not os.path.exists("data"):
@@ -35,8 +31,15 @@ if not os.path.exists("data"):
 
 from lib import database
 from lib import utils
+from lib import logger as nexo_logger
 
-app = FastAPI()
+import logging
+app = FastAPI(title="Nexo", docs_url=None, redoc_url=None, openapi_url=None)
+
+# Dissable Uvicorn's default logging
+logging.basicConfig(level=logging.CRITICAL)
+logger = logging.getLogger('uvicorn')
+logger.setLevel(logging.CRITICAL)
 
 rate_limit_data = {}
 RATE_LIMIT = 20
@@ -54,13 +57,10 @@ app.include_router(admin.router)
 
 @app.middleware("http")
 async def log_request_info(request: Request, call_next):
-    # Get client IP (supports reverse proxy if needed)
-    client_ip = request.client.host
-
+    client_ip = hashlib.sha256((request.client.host).encode()).hexdigest()
     current_time = time.time()
     request_log = rate_limit_data.get(client_ip, {"count": 0, "start_time": current_time})
 
-    # Reset if time window expired
     if current_time - request_log["start_time"] > TIME_WINDOW:
         request_log = {"count": 0, "start_time": current_time}
 
@@ -68,24 +68,29 @@ async def log_request_info(request: Request, call_next):
 
     if request_log["count"] > RATE_LIMIT:
         retry_after = int(TIME_WINDOW - (current_time - request_log["start_time"]))
+
+        nexo_logger.log_warning("main.dosprevention", f"Rate limit exceeded for {client_ip}. Count: {request_log['count']}")
         return HTMLResponse(
-            utils.generate_html(request=request, main_content="<b>SYSTEM:</b> Rate limit exceeded. Please wait " + str(retry_after) + " seconds before retrying."),
+            utils.generate_html(request=request, main_content=f"<b>SYSTEM:</b> Rate limit exceeded for ip {client_ip}. Please try again later.", footer_content="Error code: 429"),
             status_code=429,
             headers={"Retry-After": str(retry_after)}
         )
 
-    # Save updated data
     rate_limit_data[client_ip] = request_log
 
-    # Proceed to actual request
-    pre_reqtime = current_time
     response = await call_next(request)
-    post_reqtime = time.time()
-    response.headers["server"] = "NEXO"
-    response.headers["NEXO-version"] = "0.1"
-    response.headers["compute-time"] = str(post_reqtime - pre_reqtime)
-    return response
 
+    if response.status_code == 200:
+        nexo_logger.log("main", f"Request: {request.method} {request.url} - {response.status_code}")
+    elif response.status_code == 500:
+        nexo_logger.log_error("main", f"INTERNAL SERVER ERROR: {request.method} {request.url} - {response.status_code}")
+        return HTMLResponse(
+            utils.generate_html(request=request, main_content="Nexo had a internal error. Please try again later or report this error to the developers.", footer_content="Error code: 500"),
+            status_code=500
+        )
+    else:
+        nexo_logger.log_warning("main", f"Request: {request.method} {request.url} - {response.status_code}")
+    return response
 if __name__ == "__main__":
     if INIT:
         database.generate_databases()
@@ -94,4 +99,4 @@ if __name__ == "__main__":
         database.Topics.Core.create_topic("/general/", "General", "General discussion", 'False', 'False', 'False')
         database.Topics.Core.create_topic("/admin/", "Admin", "Admin discussion", 'True', 'False', 'False')
         
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="error")

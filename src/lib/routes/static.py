@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse, Fil
 from .. import utils
 from .. import sessions_manager
 
-
 router = APIRouter()
 
 @router.get("/")
@@ -14,7 +13,6 @@ async def root(request: Request):
 
     file.close()
     return HTMLResponse(utils.generate_html(request=request, title="Nexo System", main_content=content))
-
 
 @router.get("/style")
 async def style(request: Request):

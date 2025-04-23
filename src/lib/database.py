@@ -3,13 +3,14 @@ import sqlite3
 import os
 
 from . import xss
+from . import logger
 
 conn = sqlite3.connect("data/nexo.db")
 conn.row_factory = sqlite3.Row
 c = conn.cursor()
 
-
 def generate_databases():
+    logger.debug("Database", "Generating databases")
     c.execute("CREATE TABLE IF NOT EXISTS Users (Username TEXT, Password TEXT, Role TEXT, Banned TEXT, BanReason TEXT, AboutMe TEXT, AccountSettings TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS PublicPosts (ID TEXT, Title TEXT, Author TEXT, Timestamp TEXT, Topic TEXT, Body TEXT, Attachments TEXT, Score INTEGER, Deleted TEXT, Archived TEXT, RepliesLocked TEXT, Replies TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS PublicPostsReplies (ID TEXT, PostID TEXT, Author TEXT, Timestamp TEXT, Body TEXT)")
@@ -20,11 +21,13 @@ def generate_databases():
 class User:
     class Core:
         def get_user(username):
+            logger.log("Database.UserDatabase", f"Getting user {username}")
             c.execute("SELECT * FROM Users WHERE Username = ?", (username,))
             row = c.fetchone()
             return dict(row) if row else None
         
         def create_user(username, password, role):
+            logger.log("Database.UserDatabase", f"Creating user {username}")
             username = xss.sanitize_input_no_html(username)
             password = xss.sanitize_input_no_html(password)
             role = xss.sanitize_input_no_html(role)
@@ -32,6 +35,7 @@ class User:
             conn.commit()
     
         def update_user(username, password, role, banned, ban_reason, about_me, account_settings):
+            logger.log("Database.UserDatabase", f"Updating user {username}")
             username = xss.sanitize_input_no_html(username)
             password = xss.sanitize_input_no_html(password)
             role = xss.sanitize_input_no_html(role)
@@ -44,16 +48,19 @@ class User:
             conn.commit()
         
         def get_all_users():
+            logger.log("Database.UserDatabase", "Getting all users")
             c.execute("SELECT * FROM Users")
             rows = c.fetchall()
             return [dict(row) for row in rows]
         
         def get_user_by_role(role):
+            logger.log("Database.UserDatabase", f"Getting users with role {role}")
             c.execute("SELECT * FROM Users WHERE Role = ?", (role,))
             rows = c.fetchall()
             return [dict(row) for row in rows]
         
         def get_user_by_ban_status(banned):
+            logger.log("Database.UserDatabase", f"Getting users with ban status {banned}")
             c.execute("SELECT * FROM Users WHERE Banned = ?", (banned,))
             rows = c.fetchall()
             return [dict(row) for row in rows]
@@ -140,11 +147,13 @@ class User:
 class Topics:
     class Core:
         def get_topic(id):
+            logger.log("Database.TopicsDatabase", f"Getting topic {id}")
             c.execute("SELECT * FROM Topics WHERE ID = ?", (id,))
             row = c.fetchone()
             return dict(row) if row else None
         
         def create_topic(id, name, description, admin_only, locked, archived):
+            logger.log("Database.TopicsDatabase", f"Creating topic {id}")
             id = xss.sanitize_input_no_html(id)
             name = xss.sanitize_input_no_html(name)
             description = xss.sanitize_input_no_html(description)
@@ -156,6 +165,7 @@ class Topics:
             conn.commit()
             
         def update_topic(id, name, description, admin_only, locked, archived):
+            logger.log("Database.TopicsDatabase", f"Updating topic {id}")
             id = xss.sanitize_input_no_html(id)
             name = xss.sanitize_input_no_html(name)
             description = xss.sanitize_input_no_html(description)
@@ -167,21 +177,25 @@ class Topics:
             conn.commit()
         
         def get_all_topics():
+            logger.log("Database.TopicsDatabase", "Getting all topics")
             c.execute("SELECT * FROM Topics")
             rows = c.fetchall()
             return [dict(row) for row in rows]
         
         def get_topic_by_admin_only(admin_only):
+            logger.log("Database.TopicsDatabase", f"Getting topics with admin only status {admin_only}")
             c.execute("SELECT * FROM Topics WHERE AdminOnly = ?", (admin_only,))
             rows = c.fetchall()
             return [dict(row) for row in rows]
         
         def get_topic_by_locked(locked):
+            logger.log("Database.TopicsDatabase", f"Getting topics with locked status {locked}")
             c.execute("SELECT * FROM Topics WHERE Locked = ?", (locked,))
             rows = c.fetchall()
             return [dict(row) for row in rows]
         
         def get_topic_by_archived(archived):
+            logger.log("Database.TopicsDatabase", f"Getting topics with archived status {archived}")
             c.execute("SELECT * FROM Topics WHERE Archived = ?", (archived,))
             rows = c.fetchall()
             return [dict(row) for row in rows]
@@ -193,7 +207,7 @@ class PublicPosts:
             author = xss.sanitize_input_no_html(author)
             topic = xss.sanitize_input_no_html(topic)
             body = xss.sanitize_markdown_input(body)
-
+            logger.log("Database.PublicPostsDatabase", f"Adding post {id} -> {title} by {author}")
             c.execute("""
                 INSERT INTO PublicPosts (ID, Title, Author, Timestamp, Topic, Body, Attachments, Score, Deleted, Archived, RepliesLocked, Replies)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -202,27 +216,33 @@ class PublicPosts:
             conn.commit()
         
         def delete_post(id):
+            logger.log("Database.PublicPostsDatabase", f"Deleting post {id}")
             c.execute("DELETE FROM PublicPosts WHERE ID = ?", (id,))
             conn.commit()
 
         def get_post(id):
+            logger.log("Database.PublicPostsDatabase", f"Getting post {id}")
             c.execute("SELECT * FROM PublicPosts WHERE ID = ?", (id,))
             row = c.fetchone()
             return dict(row) if row else None
 
         def get_all_posts():
+            logger.log("Database.PublicPostsDatabase", "Getting all posts")
             c.execute("SELECT * FROM PublicPosts ORDER BY Timestamp DESC")
             return [dict(row) for row in c.fetchall()]
 
         def get_posts_by_user(author):
+            logger.log("Database.PublicPostsDatabase", f"Getting posts by {author}")
             c.execute("SELECT * FROM PublicPosts WHERE Author = ? ORDER BY Timestamp DESC", (author,))
             return [dict(row) for row in c.fetchall()]
         
         def get_posts_by_topic(topic, page=0):
+            logger.log("Database.PublicPostsDatabase", f"Getting posts by topic {topic} -> {page}")
             c.execute("SELECT * FROM PublicPosts WHERE Topic = ? ORDER BY Timestamp DESC LIMIT 20 OFFSET ?", (topic, page * 20))
             return [dict(row) for row in c.fetchall()]
 
         def get_post_by_page(page):
+            logger.log("Database.PublicPostsDatabase", f"Getting posts by page {page}")
             c.execute("SELECT * FROM PublicPosts ORDER BY Timestamp DESC LIMIT 20 OFFSET ?", (page * 20,))
             return [dict(row) for row in c.fetchall()]
 
@@ -258,6 +278,8 @@ class PublicPostReplies:
         def add_reply(reply_id, post_id, author, timestamp, body):
             author = xss.sanitize_input_no_html(author)
             body = xss.sanitize_markdown_input(body)
+
+            logger.log("Database.PublicPostsRepliesDatabase", f"Adding reply {reply_id} by {author}")
             c.execute("""
                 INSERT INTO PublicPostsReplies (ID, PostID, Author, Timestamp, Body)
                 VALUES (?, ?, ?, ?, ?)""", 
