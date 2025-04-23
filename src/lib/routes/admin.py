@@ -9,7 +9,7 @@ router = APIRouter()
 ADMIN_ROLES = ["owner", "admin", "moderator"]
 
 def is_admin(user: str) -> bool:
-    role = database.User.get_role(user)
+    role = database.User.Get.role(user)
     return role in ADMIN_ROLES
 
 
