@@ -4,9 +4,15 @@ from lib import sessions_manager
 from lib import database
 from lib import globals
 
+import hashlib
+
+tor_list = open("data/torlist.txt", "r").read().split("\n")
+
 def generate_html(request: Request, title="Nexo Textboard", main_content="Server did not return any content", footer_content=""):
     account_links = get_account_links(request)
     banner = open("src/static/banner.html", "r").read()
+    if hashlib.sha256((request.client.host).encode()).hexdigest() in tor_list:
+        title += " | Connected on TOR"
     return f"""
 <!DOCTYPE html>
 <html>

@@ -96,7 +96,8 @@ async def posts(request: Request, page: int = 0):
             relative_time = f"{diff.seconds}s ago"
         else:
             relative_time = "Just now"
-        main_content += f"{relative_time} Posted in <b>{post['Topic']}</b> by <i>{post['Author']}</i> {utils.get_username_tag(post['Author'])}\n <a href=\"/post/{post['ID']}\">{post['Title']}</a>\n\n"
+        replies_count = len(post['Replies'].split(","))
+        main_content += f"{relative_time} Posted in <b>{post['Topic']}</b> by <i>{post['Author']}</i> {utils.get_username_tag(post['Author'])} ({replies_count} replies)\n <a href=\"/post/{post['ID']}\">{post['Title']}</a>\n\n"
     if not posts:
         main_content = "No posts found<br>"
     if page == 0:
