@@ -1,3 +1,3 @@
 # Nexo
 
-System WIP.
+A textboard written in Python using FastAPI and SQLite3.
